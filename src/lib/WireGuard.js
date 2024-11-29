@@ -244,32 +244,35 @@ Endpoint = ${WG_HOST}:${WG_CONFIG_PORT}`;
     });
     const preSharedKey = await Util.exec('wg genpsk');
 
-    // Calculate next IP
-    let address;
-    for (let i = 2; i < 255; i++) {
-      const client = Object.values(config.clients).find((client) => {
-        return client.address === WG_DEFAULT_ADDRESS.replace('x', i);
-      });
+    // Use provided address or calculate next available IP
+    let clientAddress = address;
+    if (!clientAddress) {
+      // Calculate next IP
+      for (let i = 2; i < 255; i++) {
+        const client = Object.values(config.clients).find((client) => {
+          return client.address === WG_DEFAULT_ADDRESS.replace('x', i);
+        });
 
-      if (!client) {
-        address = WG_DEFAULT_ADDRESS.replace('x', i);
-        break;
+        if (!client) {
+          clientAddress = WG_DEFAULT_ADDRESS.replace('x', i);
+          break;
+        }
+      }
+
+      if (!clientAddress) {
+        throw new Error('Maximum number of clients reached.');
       }
     }
 
-    if (!address) {
-      throw new Error('Maximum number of clients reached.');
-    }
     // Create Client
     const id = crypto.randomUUID();
     const client = {
       id,
       name,
-      address: address || await this.__getAvailableAddress(),
+      address: clientAddress,
       privateKey,
       publicKey,
       preSharedKey,
-
       createdAt: new Date(),
       updatedAt: new Date(),
       expiredAt: null,
