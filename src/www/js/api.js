@@ -117,11 +117,15 @@ class API {
     })));
   }
 
-  async createClient({ name, expiredDate }) {
+  async createClient({ name, address, bandwidthLimit }) {
     return this.call({
       method: 'post',
       path: '/wireguard/client',
-      body: { name, expiredDate },
+      body: { 
+        name, 
+        address,
+        bandwidthLimit 
+      },
     });
   }
 
