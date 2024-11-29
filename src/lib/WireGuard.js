@@ -275,25 +275,26 @@ Endpoint = ${WG_HOST}:${WG_CONFIG_PORT}`;
       preSharedKey,
       createdAt: new Date(),
       updatedAt: new Date(),
-      expiredAt: null,
       enabled: true,
-      bandwidthLimit: {
-        uploadLimit: bandwidthLimit?.uploadLimit || null, // bytes per second
-        downloadLimit: bandwidthLimit?.downloadLimit || null, // bytes per second
-        monthlyQuota: bandwidthLimit?.monthlyQuota || null, // bytes
+      expiredAt: null,
+      bandwidthLimit: bandwidthLimit ? {
+        uploadLimit: bandwidthLimit.uploadLimit || null,
+        downloadLimit: bandwidthLimit.downloadLimit || null,
+        monthlyQuota: bandwidthLimit.monthlyQuota || null,
+        usedQuota: 0,
+        lastQuotaReset: new Date()
+      } : {
+        uploadLimit: null,
+        downloadLimit: null,
+        monthlyQuota: null,
         usedQuota: 0,
         lastQuotaReset: new Date()
       }
     };
-    if (expiredDate) {
-      client.expiredAt = new Date(expiredDate);
-      client.expiredAt.setHours(23);
-      client.expiredAt.setMinutes(59);
-      client.expiredAt.setSeconds(59);
-    }
-    config.clients[id] = client;
 
+    config.clients[id] = client;
     await this.saveConfig();
+    await this.syncConfig();
 
     return client;
   }
