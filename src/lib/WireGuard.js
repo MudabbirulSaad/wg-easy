@@ -294,7 +294,7 @@ Endpoint = ${WG_HOST}:${WG_CONFIG_PORT}`;
 
     config.clients[id] = client;
     await this.saveConfig();
-    await this.syncConfig();
+    await this.sync();
 
     return client;
   }
