@@ -48,6 +48,8 @@ const messages = { // eslint-disable-line no-unused-vars
     bandwidthLimits: 'Bandwidth Limits',
     uploadLimit: 'Upload Limit',
     downloadLimit: 'Download Limit',
+    bytesPerSecond: 'bytes/s',
+    bytesPerMonth: 'bytes/month',
   },
   ua: {
     name: 'Ім`я',
@@ -719,7 +721,7 @@ const messages = { // eslint-disable-line no-unused-vars
     deleteDialog2: 'यह निर्णय पलट नहीं सकता।',
     cancel: 'कुछ ना करें',
     create: 'बनाएं',
-    createdOn: 'सर्���न तारीख ',
+    createdOn: 'सर्न तारीख ',
     lastSeen: 'पिछली बार देखे गए थे ',
     totalDownload: 'कुल डाउनलोड: ',
     totalUpload: 'कुल अपलोड: ',

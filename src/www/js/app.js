@@ -189,6 +189,16 @@ new Vue({
     clientBandwidthQuota: null,
     clientBandwidthQuotaUnit: 1073741824,
 
+    clientForm: {
+      name: '',
+      address: '',
+      bandwidthLimit: {
+        uploadLimit: null,
+        downloadLimit: null,
+        monthlyQuota: null
+      }
+    },
+    WG_ENABLE_BANDWIDTH_LIMITS: 'false', // Will be updated from server
   },
   methods: {
     dateTime: (value) => {
@@ -397,6 +407,17 @@ new Vue({
     toggleCharts() {
       localStorage.setItem('uiShowCharts', this.uiShowCharts ? 1 : 0);
     },
+    resetClientForm() {
+      this.clientForm = {
+        name: '',
+        address: '',
+        bandwidthLimit: {
+          uploadLimit: null,
+          downloadLimit: null,
+          monthlyQuota: null
+        }
+      };
+    },
   },
   filters: {
     bytes,
@@ -539,5 +560,10 @@ new Vue({
       }
       return this.uiTheme;
     },
+  },
+  async created() {
+    // ... existing created logic ...
+    // Add this to fetch the bandwidth limits setting
+    this.WG_ENABLE_BANDWIDTH_LIMITS = await this.api.getConfig('WG_ENABLE_BANDWIDTH_LIMITS');
   },
 });
