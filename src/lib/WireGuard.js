@@ -235,13 +235,9 @@ Endpoint = ${WG_HOST}:${WG_CONFIG_PORT}`;
     });
   }
 
-  async createClient({ name, expiredDate }) {
-    if (!name) {
-      throw new Error('Missing: Name');
-    }
-
+  async createClient({ name, address = null, bandwidthLimit = null }) {
     const config = await this.getConfig();
-
+    
     const privateKey = await Util.exec('wg genkey');
     const publicKey = await Util.exec(`echo ${privateKey} | wg pubkey`, {
       log: 'echo ***hidden*** | wg pubkey',
@@ -269,7 +265,7 @@ Endpoint = ${WG_HOST}:${WG_CONFIG_PORT}`;
     const client = {
       id,
       name,
-      address,
+      address: address || await this.__getAvailableAddress(),
       privateKey,
       publicKey,
       preSharedKey,
@@ -278,6 +274,13 @@ Endpoint = ${WG_HOST}:${WG_CONFIG_PORT}`;
       updatedAt: new Date(),
       expiredAt: null,
       enabled: true,
+      bandwidthLimit: {
+        uploadLimit: bandwidthLimit?.uploadLimit || null, // bytes per second
+        downloadLimit: bandwidthLimit?.downloadLimit || null, // bytes per second
+        monthlyQuota: bandwidthLimit?.monthlyQuota || null, // bytes
+        usedQuota: 0,
+        lastQuotaReset: new Date()
+      }
     };
     if (expiredDate) {
       client.expiredAt = new Date(expiredDate);
@@ -427,6 +430,27 @@ Endpoint = ${WG_HOST}:${WG_CONFIG_PORT}`;
         }
       }
     }
+    // Reset monthly quota on the 1st of each month
+    for (const client of Object.values(config.clients)) {
+      if (!client.bandwidthLimit) continue;
+      
+      const now = new Date();
+      const lastReset = new Date(client.bandwidthLimit.lastQuotaReset);
+      
+      if (now.getMonth() !== lastReset.getMonth()) {
+        client.bandwidthLimit.usedQuota = 0;
+        client.bandwidthLimit.lastQuotaReset = now;
+        needSaveConfig = true;
+      }
+
+      // Check if quota exceeded
+      if (client.bandwidthLimit.monthlyQuota && 
+          client.bandwidthLimit.usedQuota >= client.bandwidthLimit.monthlyQuota) {
+        client.enabled = false;
+        needSaveConfig = true;
+      }
+    }
+
     if (needSaveConfig) {
       await this.saveConfig();
     }
@@ -501,6 +525,18 @@ Endpoint = ${WG_HOST}:${WG_CONFIG_PORT}`;
       wireguard_enabled_peers: Number(wireguardEnabledPeersCount),
       wireguard_connected_peers: Number(wireguardConnectedPeersCount),
     };
+  }
+
+  async updateClientBandwidthLimit({ clientId, bandwidthLimit }) {
+    const client = await this.getClient({ clientId });
+    
+    client.bandwidthLimit = {
+      ...client.bandwidthLimit,
+      ...bandwidthLimit
+    };
+    client.updatedAt = new Date();
+
+    await this.saveConfig();
   }
 
 };

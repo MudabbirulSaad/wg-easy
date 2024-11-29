@@ -311,6 +311,12 @@ module.exports = class Server {
         const { expireDate } = await readBody(event);
         await WireGuard.updateClientExpireDate({ clientId, expireDate });
         return { success: true };
+      }))
+      .put('/api/wireguard/client/:clientId/bandwidth', defineEventHandler(async (event) => {
+        const clientId = getRouterParam(event, 'clientId');
+        const { bandwidthLimit } = await readBody(event);
+        await WireGuard.updateClientBandwidthLimit({ clientId, bandwidthLimit });
+        return { success: true };
       }));
 
     const safePathJoin = (base, target) => {

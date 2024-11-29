@@ -182,6 +182,13 @@ new Vue({
       },
     },
 
+    clientBandwidthUpload: null,
+    clientBandwidthUploadUnit: 1024,
+    clientBandwidthDownload: null,
+    clientBandwidthDownloadUnit: 1024,
+    clientBandwidthQuota: null,
+    clientBandwidthQuotaUnit: 1073741824,
+
   },
   methods: {
     dateTime: (value) => {
@@ -298,14 +305,25 @@ new Vue({
           alert(err.message || err.toString());
         });
     },
-    createClient() {
-      const name = this.clientCreateName;
-      const expiredDate = this.clientExpiredDate;
-      if (!name) return;
+    async createClient() {
+      const bandwidthLimit = {
+        uploadLimit: this.clientBandwidthUpload ? this.clientBandwidthUpload * this.clientBandwidthUploadUnit : null,
+        downloadLimit: this.clientBandwidthDownload ? this.clientBandwidthDownload * this.clientBandwidthDownloadUnit : null,
+        monthlyQuota: this.clientBandwidthQuota ? this.clientBandwidthQuota * this.clientBandwidthQuotaUnit : null
+      };
 
-      this.api.createClient({ name, expiredDate })
-        .catch((err) => alert(err.message || err.toString()))
-        .finally(() => this.refresh().catch(console.error));
+      await this.api.createClient({
+        name: this.clientCreateName,
+        bandwidthLimit
+      });
+      
+      // Reset form
+      this.clientBandwidthUpload = null;
+      this.clientBandwidthDownload = null;
+      this.clientBandwidthQuota = null;
+      this.clientCreate = false;
+      
+      await this.refresh();
     },
     deleteClient(client) {
       this.api.deleteClient({ clientId: client.id })

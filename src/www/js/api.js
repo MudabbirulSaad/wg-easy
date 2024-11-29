@@ -192,4 +192,12 @@ class API {
     });
   }
 
+  async updateClientBandwidthLimit({ clientId, bandwidthLimit }) {
+    return this.call({
+      method: 'put',
+      path: `/wireguard/client/${clientId}/bandwidth`,
+      body: { bandwidthLimit },
+    });
+  }
+
 }
